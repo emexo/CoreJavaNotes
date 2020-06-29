@@ -1,0 +1,182 @@
+This Java Concurrency tutorial helps you understand the concept of Atomic Variables provided by the Java Concurrency API. Look at the java.util.concurrent.atomic package you will see the following classes:
+
+      AtomicBoolean
+      AtomicInteger
+      AtomicLong
+	  
+You can think of these are wrapper of primitive types boolean, integer and long, with the difference: they are designed to be safely used in multi-threaded context.
+They are called atomic variables because they provide some operations that cannot be interfered by multiple threads. Here’s to name a few:
+
+
+addAndGet() – Atomically adds the given value to the current value and returns new value after the addition.
+
+getAndAdd() – Atomically adds the given value to the current value and returns old value.
+
+incrementAndGet() – Atomically increments the current value by 1 and returns new value after the increment. It is equivalent to ++i operation.
+
+getAndIncrement() – Atomically increment the current value and returns old value. It is equivalent to i++ operation.
+
+decrementAndGet() – Atomically decrements the current value by 1 and returns new value after the decrement. It is equivalent to i- – operation.
+
+getAndDecrement() – Atomically decrements the current value and returns old value. It is equivalent to – -i operation.
+
+ These operations are guaranteed to execute atomically using machine-level instructions on modern processors.
+Using atomic variables help avoiding the overhead of synchronization on a single primitive variable, so it is more efficient than using synchronization/locking mechanism.
+To understand clearly, let’s walk through an example.
+
+ 
+Consider the following Counter class:
+
+public class Counter {
+    private int value;
+ 
+    public void increment() {
+        value++;
+    }
+ 
+    public void decrement() {
+        value--;
+    }
+ 
+    public int get() {
+        return value;
+    }
+}
+This class has two methods that update the value of an int variable, and a method to get the value.
+Next, suppose we have a thread class that updates a shared instance of Counter like this:
+
+public class UpdateThread extends Thread {
+    private Counter counter;
+ 
+    public UpdateThread(Counter counter) {
+        this.counter = counter;
+    }
+ 
+    public void run() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ex) { ex.printStackTrace(); }
+ 
+        counter.increment();
+    }
+}
+
+As you can see, this thread simply increases the value of the counter variable after sleeping for a short time (100 milliseconds).
+And here’s the test program that runs 100 threads that concurrently update a shared instance of Counter:
+
+public class ThreadsTest {
+    static final int NUMBER_THREADS = 100;
+ 
+    public static void main(String[] args) throws InterruptedException {
+        Counter counter = new Counter();
+        System.out.println("Initial Counter = " + counter.get());
+ 
+        UpdateThread[] threads = new UpdateThread[NUMBER_THREADS];
+ 
+        for (int i = 0; i < NUMBER_THREADS; i++) {
+            threads[i] = new UpdateThread(counter);
+            threads[i].start();
+        }
+ 
+        for (int i = 0; i < NUMBER_THREADS; i++) {
+            threads[i].join();
+        }
+ 
+        System.out.println("Final Counter = " + counter.get());
+    }
+}
+Let’s do a simple math. There are 100 threads, each increase the counter by one, so eventually the final value of the counter variable must be 100, right?
+Now, try to compile and run this test program. You will see that sometimes it prints correct result:
+
+Initial Counter = 0
+Final Counter = 100
+But more than one time, it prints incorrect result:
+
+Initial Counter = 0
+Final Counter = 96
+
+The result is inconsistent. You can easily figure out why this happens, because the increment() method is executed by multiple threads concurrently without any synchronization or locking.
+We can fix the problem by adding synchronization for the Counter class like this:
+
+public class Counter {
+    private int value;
+ 
+    public synchronized void increment() {
+        value++;
+    }
+ 
+    public synchronized void decrement() {
+        value--;
+    }
+ 
+    public synchronized int get() {
+        return value;
+    }
+}
+or using explicit locking mechanism like this:
+
+import java.util.concurrent.locks.*;
+ 
+public class Counter {
+    private int value;
+    private Lock lock = new ReentrantLock();
+ 
+    public void increment() {
+        lock.lock();
+        value++;
+        lock.unlock();
+    }
+ 
+    public void decrement() {
+        lock.lock();
+        value--;
+        lock.unlock();
+    }
+ 
+    public synchronized int get() {
+        return value;
+    }
+}
+Now recompile and run the test program again for at least 10 times, you will realize that the problem has gone, proved by the consistent output:
+
+Initial Counter = 0
+Final Counter = 100
+
+However, synchronization/locking comes at the cost of slow performance as it requires resources and thread scheduler to monitor the lock.
+Therefore, atomic variable is a good alternative to synchronization on a single primitive type as mentioned earlier, atomic variable uses machine-level instructions to guarantee atomicity.
+For example, you can use the AtomicInteger class to replace the int primitive type in the Counter class like this:
+
+import java.util.concurrent.atomic.*;
+ 
+public class Counter {
+    private AtomicInteger value = new AtomicInteger();
+ 
+    public void increment() {
+        value.incrementAndGet();
+    }
+ 
+    public void decrement() {
+        value.decrementAndGet();
+    }
+ 
+    public int get() {
+        return value.get();
+    }
+}
+Here, the methods incrementAndGet() and decrementAndGet() guarantee to execute atomically, which means that they are safely executed by multiple threads.
+Now recompile and run the test program again, you will observe the same result as using synchronization/locking with better performance though it’s hard to see the difference with this simple example. At least you got the idea, right?
+In addition to increment/decrement methods, the AtomicInteger and AtomicLong classes provide other atomic methods such as:
+
+addAndGet(int delta): Atomically adds the given value to the current value.
+compareAndSet(int expect, int update): Atomically sets the value to the given updated value if the current value == the expected value.
+
+getAndAdd(int delta): Atomically adds the given value to the current value.
+set(int newValue): Sets to the given value.
+ 
+Besides atomic variables for primitive types, the Java Concurrency API also provides atomic arrays and atomic reference type:
+AtomicIntegerArray
+AtomicLongArray
+AtomicReference
+AtomicReferenceArray
+ 
+These classes allow programmers to perform atomic operations on arrays and reference types. 
