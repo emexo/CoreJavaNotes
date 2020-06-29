@@ -1,0 +1,20 @@
+The Java Concurrency API defines the following 3 base interfaces for executors:
+
+Executor: is the super type of all executors. It defines only one method execute(Runnable).
+
+ExecutorService: is an Executor that allows tracking progress of value-returning tasks (Callable) via Future object, and manages the termination of threads. Its key methods include submit() and shutdown().
+-invokeAll() - List<Future>
+
+ScheduledExecutorService: is an ExecutorService that can schedule tasks to execute after a given delay, or to execute periodically. Its key methods are schedule(), scheduleAtFixedRate() and scheduleWithFixedDelay().
+
+You can create an executor by using one of several factory methods provided by the Executors utility class. Here’s to name a few:
+
+newFixedThreadPool(int n): creates an executor with a fixed number of threads in the pool. This executor ensures that there are no more than n concurrent threads at any time. If additional tasks are submitted when all threads are active, they will wait in the queue until a thread becomes available. If any thread terminates due to failure during execution, it will be replaced by a new one. The threads in the pool will exist until it is explicitly shutdown. Use this executor if you and to limit the maximum number of concurrent threads.
+
+newSingleThreadExecutor(): creates an executor that executes a single task at a time. Submitted tasks are guaranteed to execute sequentially, and no more than one task will be active at any time. Consider using this executor if you want to queue tasks to be executed in order, one after another.
+
+newScheduledThreadPool(int corePoolSize): creates an executor that can schedule tasks to execute after a given delay, or to execute periodically. Consider using this executor if you want to schedule tasks to execute concurrently.
+
+newCachedThreadPool(): creates an expandable thread pool executor. New threads are created as needed, and previously constructed threads are reused when they are available. Idle threads are kept in the pool for one minute. This executor is suitable for applications that launch many short-lived concurrent tasks.
+
+newSingleThreadScheduleExecutor(): creates a single-threaded executor that can schedule tasks to execute after a given delay, or to execute periodically. Consider using this executor if you want to schedule tasks to execute sequentially.
