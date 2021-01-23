@@ -1,0 +1,39 @@
+1. JDBC Drivers
+2. Connections
+3. Statements
+4. Result Sets
+5. Close the connection
+
+JDBC-ODBC bridge driver
+Native-API driver (partially java driver)
+Network Protocol driver (fully java driver)
+Thin driver (fully java driver)
+
+Loading the JDBC Driver - Class.forName("driverClassName");
+Opening the Connection - 
+Connection connection = DriverManager.getConnection(url, user, password);
+Query the Database -
+Statement statement = connection.createStatement();
+String sql = "select * from employee"
+ResultSet result = statement.executeQuery(sql);
+while(result.next()) {
+
+    String name = result.getString("name");
+    long   age  = result.getLong  ("age");
+
+}
+
+ int columnIndex = result.findColumn("columnName");  // get the index
+
+Closing the Connection - connection.close();
+
+String sql = "select * from employee"
+
+boolean execute(String sql); 
+int executeUpdate(String sql); //INSERT, UPDATE or DELETE statement
+ResultSet executeQuery(String sql);
+
+
+select * from users where empId=?;
+
+result.setString(colname )
