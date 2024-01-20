@@ -1,6 +1,9 @@
 1. JDBC Drivers
 2. Connections
 3. Statements
+    1. Statement
+    2. Prepared Statement
+    3. Callable Statement
 4. Result Sets
 5. Close the connection
 
